@@ -1,8 +1,10 @@
-# whmcs
+# WHMCS Module
 
 WHMCS module to use Sellix as a Payment Gateway.
 
 # Installation
+
+0. Download the latest release ZIP [on GitHub](https://github.com/Sellix/whmcs/releases).
 
 1. Unzip and upload file at <WHMCS_INSTALLATION_ID>/modules/gateways/
 
