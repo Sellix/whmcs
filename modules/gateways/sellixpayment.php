@@ -189,7 +189,7 @@ function sellixpayment_link($params)
     if(!empty($uniquid))
     {
         #valid for 2hours
-        $url = "https://sellix.io/payment/{$uniquid}";
+        $url = "https://checkout.sellix.io/payment/{$uniquid}";
 
         #checking if uniquid expired ?
         if(curl_init($url) !== false)
@@ -243,7 +243,7 @@ function sellixpayment_link($params)
 
         $status = 'Payment created: Success';
 
-        $htmlOutput = '<form target="_blank" method="POST" action="https://sellix.io/payment/'.$response->data->invoice->uniqid.'">';
+        $htmlOutput = '<form target="_blank" method="POST" action="https://checkout.sellix.io/payment/'.$response->data->invoice->uniqid.'">';
         //$htmlOutput .= '<input type="hidden" name="uniqid" value="' . $response->data->invoice->uniqid .'" />';
 
         $htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
