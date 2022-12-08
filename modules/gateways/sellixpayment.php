@@ -216,12 +216,10 @@ function sellixpayment_link($params)
             'title' => $description,
             'quantity' => '1',
             'currency' => $currencyCode,
-            'gateway' => ($sellixPaymentMethod=='all'?'':$sellixPaymentMethod),
+            'gateway' => ($sellixPaymentMethod == 'all' ? '' : $sellixPaymentMethod),
             'value' => $amount,
             'confirmations' => $confirmation,
             'email' => $email,
-            'custom_fields'=>array('Discord Username'=>$firstname),
-            'fraud_shield'=>array('ip'=>$remote_ip,'user_agent'=>$_SERVER['HTTP_USER_AGENT'],'user_language'=>$_SERVER['HTTP_ACCEPT_LANGUAGE']),
             'webhook'=>$CONFIG['SystemURL'].'/modules/gateways/callback/sellixpayment.php',
             'white_label'=>true,
             'return_url' => $returnUrl
