@@ -1,0 +1,29 @@
+{
+    "schema": "1.1",
+    "type": "whmcs-gateways",
+    "name": "sellixpay",
+    "license": "MIT",
+    "category": "payments",
+    "description": {
+        "name": "Sellix Pay",
+        "tagline": "WHMCS Sellix Pay Payment Gateway Module",
+        "long": "Accept Cryptocurrencies, Credit Cards, PayPal and regional banking methods with Sellix Pay",
+        "features": [
+            "With Sellix Pay, customers can quickly checkout and complete orders with their preferred payment method, including cryptocurrencies",
+            "Powered by our fraud prevention software Fraud Shield, Sellix ensures the stability and security of your products all day, all night"
+        ]
+    },
+    "logo": {
+        "filename": "logo.png"
+    },
+    "support": {
+        "homepage": "https:\/\/sellix.io\/", 
+        "docs_url": "https:\/\/sellix.io\/payments#docs\/"
+    },
+    "authors": [
+        {
+            "name": "Sellix S.R.L",
+            "homepage": "https:\/\/sellix.io\/"
+        }
+    ]
+}
