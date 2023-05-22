@@ -34,7 +34,20 @@ try {
         $invoiceid = (int)$invoiceid;
         
         $transactionId = $sellix_order['uniqid'];
-        $paymentAmount = $sellix_order['total'];
+
+        $gateway_fees = 0;
+        if (isset($sellix_order["discount_breakdown"]["gateway_fee"]["total_display"])) {
+            $gateway_fees = $sellix_order["discount_breakdown"]["gateway_fee"]["total_display"];
+        }
+
+        $paymentAmount = $sellix_order['total_display'];
+        $paymentAmount = $paymentAmount - $gateway_fees;
+         
+        $orderAmount = $gatewayParams['amount'];
+        if ($paymentAmount > $orderAmount) {
+            $paymentAmount = $orderAmount;
+        }
+        
         $message1 = 'Invoice #' . $invoiceid;
         $message2 = ' (' . $sellix_order['uniqid'] . '). Status: ' . $sellix_order['status'];
         

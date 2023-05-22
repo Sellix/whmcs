@@ -23,7 +23,7 @@ function sellixpay_MetaData()
 {
     return array(
         'DisplayName' => 'Sellix Pay',
-        'APIVersion' => '1.1',
+        'APIVersion' => '1.2',
         'DisableLocalCredtCardInput' => false,
         'TokenisedStorage' => false,
     );
@@ -73,7 +73,7 @@ function sellixpay_config()
 
 function sellixpay_link($params) {
     global $_LANG;
- 
+    
     createSellixpayDbTable();
     sellixLog($params['name'], $_REQUEST, 'Request Data on link function');
     
