@@ -3,7 +3,7 @@
 ![](https://img.shields.io/badge/Sellix-WHMCS-blueviolet) ![](https://img.shields.io/badge/Version-v1.0.0-green)
 
 <p align="center">
-  <img src="https://cdn.sellix.io/cdn-cgi/image/w=500,h=500/static/logo/main.png" alt="Sublime's custom image"/>
+  <img src="https://cdn.sellix.io/static/previews/woocommerce.jpeg" alt="Sellix Logo"/>
 </p>
 
 WHMCS module to use Sellix as a Payment Gateway.
