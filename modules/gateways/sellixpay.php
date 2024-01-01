@@ -23,7 +23,7 @@ function sellixpay_MetaData()
 {
     return array(
         'DisplayName' => 'Sellix Pay',
-        'APIVersion' => '1.3',
+        'APIVersion' => '1.4',
         'DisableLocalCredtCardInput' => false,
         'TokenisedStorage' => false,
     );
@@ -166,7 +166,7 @@ function sellixRedirect($url)
 function generateSellixPayment($configParams)
 {
     $params = [
-        'title' => $configParams['order_prefix'] . $configParams['invoiceid'],
+        'title' => $configParams['order_prefix'] . $configParams['invoicenum'],
         'currency' => $configParams['currency'],
         'return_url' => getSellixReturnUrl($configParams),
         'webhook' => getSellixWebhookUrl($configParams),
@@ -228,19 +228,31 @@ function sellixValidSellixOrder($params, $order_uniqid)
 
 function getSellixReturnUrl($params)
 {
-    $url = $params['systemurl'].'/modules/gateways/callback/sellixpay/return.php?invoiceid='.$params['invoiceid'];
+	$url = $params['systemurl'];
+	if(substr($params['systemurl'] , -1) != '/' ){
+		$url .= '/';
+	}
+    $url .= 'modules/gateways/callback/sellixpay/return.php?invoiceid='.$params['invoiceid'];
     return $url;
 }
 
 function getSellixWebhookUrl($params)
 {
-    $url = $params['systemurl'].'/modules/gateways/callback/sellixpay/webhook.php?invoiceid='.$params['invoiceid'];
+	$url = $params['systemurl'];
+	if(substr($params['systemurl'] , -1) != '/' ){
+		$url .= '/';
+	}
+    $url .= 'modules/gateways/callback/sellixpay/webhook.php?invoiceid='.$params['invoiceid'];
     return $url;
 }
 
 function getSellixPaymentCreateAjxUrl($params)
 {
-    $url = $params['systemurl'].'/modules/gateways/callback/sellixpay/payajax.php?invoiceid='.$params['invoiceid'];
+	$url = $params['systemurl'];
+	if(substr($params['systemurl'] , -1) != '/' ){
+		$url .= '/';
+	}
+    $url .= 'modules/gateways/callback/sellixpay/payajax.php?invoiceid='.$params['invoiceid'];
     return $url;
 }
 
