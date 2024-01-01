@@ -23,7 +23,7 @@ function sellixpay_MetaData()
 {
     return array(
         'DisplayName' => 'Sellix Pay',
-        'APIVersion' => '1.2',
+        'APIVersion' => '1.3',
         'DisableLocalCredtCardInput' => false,
         'TokenisedStorage' => false,
     );
@@ -172,6 +172,7 @@ function generateSellixPayment($configParams)
         'webhook' => getSellixWebhookUrl($configParams),
         'email' => $configParams['clientdetails']['email'],
         'value' => $configParams['amount'],
+        'origin' => 'WHMCS'
     ];
 
     $route = "/v1/payments";
