@@ -30,4 +30,7 @@ WHMCS module to use Sellix as a Payment Gateway.
 
 = 1.3 =
 - Added origin parameter to the gateway
-=======
+
+= 1.4 =
+- Gateway URLs traling slash issue is fixed.
+- Used formatted invoice number instead of sequential invoice id.
