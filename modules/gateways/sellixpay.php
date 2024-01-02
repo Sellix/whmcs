@@ -23,7 +23,7 @@ function sellixpay_MetaData()
 {
     return array(
         'DisplayName' => 'Sellix Pay',
-        'APIVersion' => '1.4',
+        'APIVersion' => '1.4.2',
         'DisableLocalCredtCardInput' => false,
         'TokenisedStorage' => false,
     );
@@ -97,7 +97,7 @@ function sellixpay_link($params) {
                     }
 
                     if (!empty($payment_url)) {
-                        $htmlOutput .= '<form action="' . $payment_url . '">';
+                        $htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
                         $htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
                         $htmlOutput .= '<input type="hidden" name="sellix_url_generate" value="regenerate" />';
                         $htmlOutput .= '<input class="btn btn-primary" type="submit" value="' . $params['langpaynow'] . '" />';
@@ -113,7 +113,7 @@ function sellixpay_link($params) {
                     }
                     
                     if (!empty($payment_url)) {
-                        $htmlOutput .= '<form action="' . $payment_url . '">';
+                        $htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
                         $htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
                         $htmlOutput .= '<input type="hidden" name="sellix_url_generate" value="regenerate" />';
                         $htmlOutput .= '<input class="btn btn-primary" type="submit" value="' . $params['langpaynow'] . '" />';
@@ -131,7 +131,7 @@ function sellixpay_link($params) {
 
                 if (!empty($payment_url)) {
                     sellixLog($params['name'], 'Returned url: '.$payment_url, 'Payment process concerning invoice '.$params['invoiceid']);
-                    $htmlOutput .= '<form action="' . $payment_url . '">';
+                    $htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
                     $htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
                     $htmlOutput .= '<input type="submit" value="' . $params['langpaynow'] . '" />';
                     $htmlOutput .= '</form>';

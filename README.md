@@ -34,3 +34,6 @@ WHMCS module to use Sellix as a Payment Gateway.
 = 1.4 =
 - Gateway URLs traling slash issue is fixed.
 - Used formatted invoice number instead of sequential invoice id.
+
+= 1.4.2 =
+- Made invoices open in a new tab when pay is clicked
