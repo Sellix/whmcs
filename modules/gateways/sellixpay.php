@@ -23,7 +23,7 @@ function sellixpay_MetaData()
 {
     return array(
         'DisplayName' => 'Sellix Pay',
-        'APIVersion' => '1.4.2',
+        'APIVersion' => '1.5.0',
         'DisableLocalCredtCardInput' => false,
         'TokenisedStorage' => false,
     );
@@ -80,58 +80,25 @@ function sellixpay_link($params) {
     $htmlOutput = '';
     try {
         if (isset($params['invoiceid']) && $params['invoiceid'] > 0) {
-            
-            $clientArea = new WHMCS\ClientArea();
+            $payment_url = generateSellixPayment($params);
+			
+			$clientArea = new WHMCS\ClientArea();
             $pageName = $clientArea->getCurrentPageName();
-            $payment_url = '';
 
             if ($pageName == 'viewinvoice') {
-                $invoiceid = (int)$params['invoiceid'];
-
-                $lastInvoiceId = (int)getUserLastInvoiceId($params['clientdetails']['userid']);
-                if ($lastInvoiceId != $invoiceid) {
-                    $payment_url = getSellixpayOrderByColumn($params['invoiceid'], 'payment_url');
-                    if (empty($payment_url)) {
-                        $payment_url = generateSellixPayment($params);
-                        updateSellixpayOrder($params['invoiceid'], 'payment_url', $payment_url);
-                    }
-
-                    if (!empty($payment_url)) {
-                        $htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
-                        $htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
-                        $htmlOutput .= '<input type="hidden" name="sellix_url_generate" value="regenerate" />';
-                        $htmlOutput .= '<input class="btn btn-primary" type="submit" value="' . $params['langpaynow'] . '" />';
-                        $htmlOutput .= '</form>';
-                    } else {
-                        throw new Exception('Sellix checkout URL is failed to generate.');
-                    }
-                } else {//last invoice id
-                    $payment_url = getSellixpayOrderByColumn($params['invoiceid'], 'payment_url');
-                    if (empty($payment_url)) {
-                        $payment_url = generateSellixPayment($params);
-                        updateSellixpayOrder($params['invoiceid'], 'payment_url', $payment_url);
-                    }
-                    
-                    if (!empty($payment_url)) {
-                        $htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
-                        $htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
-                        $htmlOutput .= '<input type="hidden" name="sellix_url_generate" value="regenerate" />';
-                        $htmlOutput .= '<input class="btn btn-primary" type="submit" value="' . $params['langpaynow'] . '" />';
-                        $htmlOutput .= '</form>';
-                    } else {
-                        throw new Exception('Sellix checkout URL is failed to generate.');
-                    }
-                }
+				if (!empty($payment_url)) {
+					$htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
+					$htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
+					$htmlOutput .= '<input type="hidden" name="sellix_url_generate" value="regenerate" />';
+					$htmlOutput .= '<input class="btn btn-primary" type="submit" value="' . $params['langpaynow'] . '" />';
+					$htmlOutput .= '</form>';
+				} else {
+					throw new Exception('Sellix checkout URL is failed to generate.');
+				}
             } else {//not viewinvoice page
-                $payment_url = getSellixpayOrderByColumn($params['invoiceid'], 'payment_url');
-                if (empty($payment_url)) {
-                    $payment_url = generateSellixPayment($params);
-                    updateSellixpayOrder($params['invoiceid'], 'payment_url', $payment_url);
-                }
-
                 if (!empty($payment_url)) {
                     sellixLog($params['name'], 'Returned url: '.$payment_url, 'Payment process concerning invoice '.$params['invoiceid']);
-                    $htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
+                    $htmlOutput .= '<form action="' . $payment_url . '">';
                     $htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
                     $htmlOutput .= '<input type="submit" value="' . $params['langpaynow'] . '" />';
                     $htmlOutput .= '</form>';

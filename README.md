@@ -37,3 +37,6 @@ WHMCS module to use Sellix as a Payment Gateway.
 
 = 1.4.2 =
 - Made invoices open in a new tab when pay is clicked
+
+= 1.5.0 =
+- Create a new Sellix invoice whenever payment is requested instead of creating once and use that link.
