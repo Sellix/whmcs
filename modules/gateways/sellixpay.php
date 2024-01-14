@@ -23,7 +23,7 @@ function sellixpay_MetaData()
 {
     return array(
         'DisplayName' => 'Sellix Pay',
-        'APIVersion' => '1.5.0',
+        'APIVersion' => '1.5.1',
         'DisableLocalCredtCardInput' => false,
         'TokenisedStorage' => false,
     );
@@ -75,27 +75,91 @@ function sellixpay_link($params) {
     global $_LANG;
     
     createSellixpayDbTable();
+	upgradeSellixpayDbTable151();
     sellixLog($params['name'], $_REQUEST, 'Request Data on link function');
     
     $htmlOutput = '';
     try {
         if (isset($params['invoiceid']) && $params['invoiceid'] > 0) {
-            $payment_url = generateSellixPayment($params);
-			
+
 			$clientArea = new WHMCS\ClientArea();
             $pageName = $clientArea->getCurrentPageName();
 
             if ($pageName == 'viewinvoice') {
-				if (!empty($payment_url)) {
-					$htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
-					$htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
-					$htmlOutput .= '<input type="hidden" name="sellix_url_generate" value="regenerate" />';
-					$htmlOutput .= '<input class="btn btn-primary" type="submit" value="' . $params['langpaynow'] . '" />';
-					$htmlOutput .= '</form>';
-				} else {
-					throw new Exception('Sellix checkout URL is failed to generate.');
-				}
+				
+				$lastInvoiceId = (int)getUserLastInvoiceId($params['clientdetails']['userid']);
+                if ($lastInvoiceId != $invoiceid) {
+					$payment_url = '';
+					$isInvoiceChanged = checkIfInvoiceChanged($params);
+					if (!$isInvoiceChanged) {
+						$payment_url = getSellixpayOrderByColumn($params['invoiceid'], 'payment_url');
+					}
+                    if (empty($payment_url)) {
+                        $payment_url = generateSellixPayment($params);
+                        updateSellixpayOrder($params['invoiceid'], 'payment_url', $payment_url);
+						updateSellixpayOrder_151($params['invoiceid'], 'currency_iso', $params['currency']);
+						updateSellixpayOrder_151(
+							$params['invoiceid'], 
+							'customer_email',
+							$params['clientdetails']['email']
+						);
+						updateSellixpayOrder_151($params['invoiceid'], 'invoice_amount', $params['amount']);
+                    }
+
+                    if (!empty($payment_url)) {
+                        $htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
+                        $htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
+                        $htmlOutput .= '<input type="hidden" name="sellix_url_generate" value="regenerate" />';
+                        $htmlOutput .= '<input class="btn btn-primary" type="submit" value="' . $params['langpaynow'] . '" />';
+                        $htmlOutput .= '</form>';
+                    } else {
+                        throw new Exception('Sellix checkout URL is failed to generate.');
+                    }
+                } else {//last invoice id
+					$payment_url = '';
+					$isInvoiceChanged = checkIfInvoiceChanged($params);
+					if (!$isInvoiceChanged) {
+						$payment_url = getSellixpayOrderByColumn($params['invoiceid'], 'payment_url');
+					}
+                    if (empty($payment_url)) {
+                        $payment_url = generateSellixPayment($params);
+                        updateSellixpayOrder($params['invoiceid'], 'payment_url', $payment_url);
+						updateSellixpayOrder_151($params['invoiceid'], 'currency_iso', $params['currency']);
+						updateSellixpayOrder_151(
+							$params['invoiceid'], 
+							'customer_email',
+							$params['clientdetails']['email']
+						);
+						updateSellixpayOrder_151($params['invoiceid'], 'invoice_amount', $params['amount']);
+                    }
+                    
+                    if (!empty($payment_url)) {
+                        $htmlOutput .= '<form target="_blank" action="' . $payment_url . '">';
+                        $htmlOutput .= '<input type="hidden" name="action" value="paynow" />';
+                        $htmlOutput .= '<input type="hidden" name="sellix_url_generate" value="regenerate" />';
+                        $htmlOutput .= '<input class="btn btn-primary" type="submit" value="' . $params['langpaynow'] . '" />';
+                        $htmlOutput .= '</form>';
+                    } else {
+                        throw new Exception('Sellix checkout URL is failed to generate.');
+                    }
+                }
             } else {//not viewinvoice page
+				$payment_url = '';
+				$isInvoiceChanged = checkIfInvoiceChanged($params);
+				if (!$isInvoiceChanged) {
+					$payment_url = getSellixpayOrderByColumn($params['invoiceid'], 'payment_url');
+				}
+                if (empty($payment_url)) {
+                    $payment_url = generateSellixPayment($params);
+                    updateSellixpayOrder($params['invoiceid'], 'payment_url', $payment_url);
+					updateSellixpayOrder_151($params['invoiceid'], 'currency_iso', $params['currency']);
+					updateSellixpayOrder_151(
+						$params['invoiceid'], 
+						'customer_email',
+						$params['clientdetails']['email']
+					);
+					updateSellixpayOrder_151($params['invoiceid'], 'invoice_amount', $params['amount']);
+                }
                 if (!empty($payment_url)) {
                     sellixLog($params['name'], 'Returned url: '.$payment_url, 'Payment process concerning invoice '.$params['invoiceid']);
                     $htmlOutput .= '<form action="' . $payment_url . '">';
@@ -132,6 +196,15 @@ function sellixRedirect($url)
  */
 function generateSellixPayment($configParams)
 {
+	if ($configParams['amount'] <= 0) {
+		throw new \Exception('Payment error: '.'Invoice amount should be greater than 0');
+	}
+	
+	$status = getInvoiceStatus($$configParams['invoiceid']);
+	if ($status == 'Paid') {
+		throw new \Exception('Payment error: '.'Already this invoice has been paid.');
+	}
+	
     $params = [
         'title' => $configParams['order_prefix'] . $configParams['invoicenum'],
         'currency' => $configParams['currency'],
@@ -328,6 +401,26 @@ function createSellixpayDbTable()
     }
 }
 
+function upgradeSellixpayDbTable151()
+{
+    if (!Capsule::schema()->hasTable('sellixpay_orders_151')) {
+        try {
+            Capsule::schema()->create(
+                'sellixpay_orders_151',
+                function ($table) {
+                    $table->increments('id');
+                    $table->integer('invoiceid');
+                    $table->string('customer_email');
+                    $table->string('currency_iso');
+                    $table->string('invoice_amount');
+                    $table->text('additional');
+                }
+            );
+        }
+        catch (\Exception $e) { }
+    }
+}
+
 function updateSellixpayOrder($invoiceid, $column, $value)
 {
     if (!empty($value)) {
@@ -337,6 +430,26 @@ function updateSellixpayOrder($invoiceid, $column, $value)
                 $query->update(array($column => $value));
             } else {
                 Capsule::table("sellixpay_orders")->insert(
+                    array(
+                        'invoiceid'=>$invoiceid,
+                        $column => $value
+                    )
+                );
+            }
+        }
+        catch (\Exception $e) { }
+    }
+}
+
+function updateSellixpayOrder_151($invoiceid, $column, $value)
+{
+    if (!empty($value)) {
+        try {
+            $query = Capsule::table("sellixpay_orders_151")->where("invoiceid", $invoiceid);
+            if (!empty($query->value('id'))) {
+                $query->update(array($column => $value));
+            } else {
+                Capsule::table("sellixpay_orders_151")->insert(
                     array(
                         'invoiceid'=>$invoiceid,
                         $column => $value
@@ -367,6 +480,16 @@ function getSellixpayOrderByColumn($invoiceid, $column)
     }
 }
 
+function getSellixpayOrderByColumn_151($invoiceid, $column)
+{
+    try {
+        return Capsule::table("sellixpay_orders_151")->where("invoiceid", $invoiceid)->value($column);
+    }
+    catch (\Exception $e) { 
+        return false;
+    }
+}
+
 function getUserLastInvoiceId($userid)
 {
     try {
@@ -375,4 +498,38 @@ function getUserLastInvoiceId($userid)
     catch (\Exception $e) { 
         return false;
     }
+}
+
+function getInvoiceStatus($invoiceid)
+{
+    try {
+        return Capsule::table("tblinvoices")->where("id", $invoiceid)->value('status');
+    }
+    catch (\Exception $e) { 
+        return false;
+    }
+}
+
+function checkIfInvoiceChanged($params)
+{
+	$invoiceid = $params['invoiceid'];
+	$status = false;
+	
+	$currency_iso = getSellixpayOrderByColumn_151($invoiceid, 'currency_iso');
+	$customer_email = getSellixpayOrderByColumn_151($invoiceid, 'customer_email');
+	$invoice_amount = getSellixpayOrderByColumn_151($invoiceid, 'invoice_amount');
+	
+	if ($params['currency'] != $currency_iso) {
+		$status = true;
+	}
+	
+	if (!$status && $params['clientdetails']['email'] != $customer_email) {
+		$status = true;
+	}
+	
+	if (!$status && $params['amount'] != $invoice_amount) {
+		$status = true;
+	}
+	
+	return $status;
 }
