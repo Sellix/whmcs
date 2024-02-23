@@ -23,7 +23,7 @@ function sellixpay_MetaData()
 {
     return array(
         'DisplayName' => 'Sellix Pay',
-        'APIVersion' => '1.5.1',
+        'APIVersion' => '1.5.2',
         'DisableLocalCredtCardInput' => false,
         'TokenisedStorage' => false,
     );
@@ -200,7 +200,7 @@ function generateSellixPayment($configParams)
 		throw new \Exception('Payment error: '.'Invoice amount should be greater than 0');
 	}
 	
-	$status = getInvoiceStatus($$configParams['invoiceid']);
+	$status = getInvoiceStatus($configParams['invoiceid']);
 	if ($status == 'Paid') {
 		throw new \Exception('Payment error: '.'Already this invoice has been paid.');
 	}
@@ -214,6 +214,78 @@ function generateSellixPayment($configParams)
         'value' => $configParams['amount'],
         'origin' => 'WHMCS'
     ];
+	
+	$cartDetails = [];
+	$items = WHMCS\Billing\Invoice\Item::where("invoiceid", "=", $configParams['invoiceid'])->get();
+	foreach ($items as $item) {
+
+		switch ($item->type) {
+            case "Hosting":
+				
+                $service = WHMCS\Service\Service::find($item->relatedEntityId);
+                if ($service->packageId) {
+					$product = WHMCS\Product\Product::find($service->packageId);
+					$productId = $product->id;
+					$productName = $product->name;
+					$productDesc = $product->shortDescription;
+				
+                    $itemDetails = [];
+					
+					$itemDetails['uniqid'] = $productId;
+					$itemDetails['title'] = $productName;
+					$itemDetails['description'] = $productDesc;
+					$itemDetails['price_display'] = $item->amount;
+					$itemDetails['currency'] = $configParams['currency'];
+					
+					$cartDetails[] = $itemDetails;
+                }
+                break;
+            case "Addon":
+                $addon = WHMCS\Service\Addon::find($item->relatedEntityId);
+				
+				$itemDetails = [];
+				
+                $itemDetails['uniqid'] = $item->relid;
+				$itemDetails['title'] = $item->description;
+				$itemDetails['description'] = '';
+				$itemDetails['price_display'] = $item->amount;
+				$itemDetails['currency'] = $configParams['currency'];
+				
+				$cartDetails[] = $itemDetails;
+				
+                break;
+            case "DomainRegister":
+            case "DomainRenew":
+            case "DomainTransfer":
+            case "DomainAddonDNS":
+            case "DomainAddonEMF":
+            case "DomainAddonIDP":
+                $domain = WHMCS\Domain\Domain::find($item->relatedEntityId);
+                
+				$itemDetails = [];
+				
+                $itemDetails['uniqid'] = $item->relid;
+				$itemDetails['title'] = $item->description;
+				$itemDetails['description'] = '';
+				$itemDetails['price_display'] = $item->amount;
+				$itemDetails['currency'] = $configParams['currency'];
+				
+				$cartDetails[] = $itemDetails;
+				
+                break;
+			default:
+				$itemDetails = [];
+				
+                $itemDetails['uniqid'] = $item->relid;
+				$itemDetails['title'] = $item->description;
+				$itemDetails['description'] = '';
+				$itemDetails['price_display'] = $item->amount;
+				$itemDetails['currency'] = $configParams['currency'];
+				
+				$cartDetails[] = $itemDetails;
+        }
+	}
+	$params['developer_cart_details'] = $cartDetails;
 
     $route = "/v1/payments";
     $response = sellixPostAuthenticatedJsonRequest($configParams, $route, $params);
@@ -342,7 +414,7 @@ function sellixPostAuthenticatedJsonRequest($params, $route, $body = false, $ext
 
     sellixLog($params['name'], $url, 'API URL');
     sellixLog($params['name'], $headers, 'Headers');
-    sellixLog($params['name'], $body, 'Body');
+    sellixLog($params['name'], json_encode($body), 'Body');
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
