@@ -47,3 +47,5 @@ WHMCS module to use Sellix as a Payment Gateway.
 - And also for every page refresh on the invoice page, new sellix invoice will not be created.
 - First created sellix invoice url will be used as before.
 - But now we made changes to the code that, if an invoice email, currency, or amount changed, then new sellix invoice is created with new customer and payment details instead of previously created sellix invoice url.
+
+= 1.5.2 = Send item details to the gateway
